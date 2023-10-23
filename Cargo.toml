@@ -1,0 +1,38 @@
+[package]
+name = "game_engine"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+# IMPORTANT: run 'cargo vcpkg build' BEFORE running cargo build
+
+# we use rand for random number generation and rayon as an abstraction for worker thread pools (so we don't have to do it ourselves)
+# CHANGE: additionally we use specs as our ECS (entity component system) controller for the engine (implement our own first though to see)
+# CHANGE: either use ash (lower level) vulkan api wrapper or vulkano which is higher level and introduces some abstractions
+[dependencies]
+rand = "0.8.5"
+rayon = "1.8.0"
+specs = "0.20.0"
+
+# sdl2 which is a hardware abstraction layer and lets us create windows etc...
+# we specify to use a static link to the library b/c we are using vcpkg to install sdl as a depdency
+# below we use the cargo-vcpkg crate rather than installing vcpkg ourselves b/c it makes it easier to distribute
+# we could have also download the SDL package (sdl-devel-vc or something else) and then copied the .dll file and throw the library files into a rust library folder and linked it all (but thats too much work)
+# NOTE: please see sdl2 crate info on how to deal with building and exporting this project properly with the correct library files included
+[dependencies.sdl2]
+version = "0.35"
+default-features = false
+features = ["ttf","image","gfx","mixer","static-link","use-vcpkg"]
+
+# There is a vcpkg crate on rust called cargo-vcpkg
+# vcpkg is a tool used to install libraries and packages for c/c++, you must install it on a per-project basis (or globally if you want but discouraged)
+# cargo-vcpkg lets us install c/c++ packages for rust projects (on a per-project basis)
+# here we define the packages that will be installed when we run 'cargo vcpkg build' (therefore sdl2 is going to be statically linked when we export this project)
+[package.metadata.vcpkg]
+dependencies = ["sdl2", "sdl2-image[libjpeg-turbo,tiff,libwebp]", "sdl2-ttf", "sdl2-gfx", "sdl2-mixer"]
+git = "https://github.com/microsoft/vcpkg"
+tag = "2023.10.19" # either use tag, rev, or branch to specify the tag, revision signature or branch name (uses git checkout in the backend)
+
+[package.metadata.vcpkg.target]
+x86_64-pc-windows-msvc = { triplet = "x64-windows-static-md" }
